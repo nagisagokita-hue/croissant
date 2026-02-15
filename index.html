@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>世界のクロワッサンマップ</title>
+    <title>🥐 Croissant Map for Hunters</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -34,7 +34,7 @@
 
         const CroissantMap = () => {
             const [croissants, setCroissants] = useState([
-                { id: '1', shopName: 'Sample Bakery', location: 'Paris', rating: 5, comment: '外はサクサク！', lat: 48.8566, lng: 2.3522, photo: null }
+                { id: '1', shopName: 'Hunter\'s Choice', location: 'Paris', rating: 5, comment: '究極のサクサク感！', lat: 48.8566, lng: 2.3522, photo: null }
             ]);
             const [viewMode, setViewMode] = useState('grid');
             const [showForm, setShowForm] = useState(false);
@@ -49,55 +49,77 @@
                 setFormData({ ...formData, lng: (x / 1000) * 360 - 180, lat: 90 - (y / 500) * 180 });
             };
 
-            // 写真を読み込む関数
+            // 画像圧縮リサイズ関数
             const handlePhotoChange = (e) => {
                 const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setFormData({ ...formData, photo: reader.result });
-                    reader.readAsDataURL(file);
-                }
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800; 
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        setFormData({ ...formData, photo: dataUrl });
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
             };
 
-            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [viewMode, showForm, formData]);
+            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [viewMode, showForm, formData.photo, formData.rating]);
 
             return (
                 <div className="min-h-screen pb-10">
-                    <header className="bg-amber-600 text-white p-6 shadow-xl flex justify-between items-center">
-                        <h1 className="text-2xl font-black italic">🥐 Croissant Map for Hunters </h1>
-                        <button onClick={() => setShowForm(true)} className="bg-white text-amber-600 px-6 py-2 rounded-full font-bold shadow-md hover:scale-105 transition">投稿する</button>
+                    <header className="bg-amber-700 text-white p-6 shadow-xl flex justify-between items-center border-b-4 border-amber-900">
+                        <h1 className="text-2xl font-black italic tracking-tighter uppercase">🥐 Croissant Map for Hunters</h1>
+                        <button onClick={() => setShowForm(true)} className="bg-amber-400 text-amber-900 px-6 py-2 rounded-full font-black shadow-md hover:bg-amber-300 transition active:scale-95">Hunt Start!</button>
                     </header>
 
                     <div className="max-w-6xl mx-auto p-6">
                         <div className="flex gap-2 mb-8 bg-amber-100 w-fit p-1 rounded-2xl shadow-inner border border-amber-200">
-                            <button onClick={() => setViewMode('grid')} className={`px-6 py-2 rounded-xl font-bold transition ${viewMode === 'grid' ? 'bg-white text-amber-600 shadow-sm' : 'text-amber-800/50'}`}>一覧</button>
-                            <button onClick={() => setViewMode('map')} className={`px-6 py-2 rounded-xl font-bold transition ${viewMode === 'map' ? 'bg-white text-amber-600 shadow-sm' : 'text-amber-800/50'}`}>マップ</button>
+                            <button onClick={() => setViewMode('grid')} className={`px-6 py-2 rounded-xl font-bold transition ${viewMode === 'grid' ? 'bg-white text-amber-700 shadow-sm' : 'text-amber-800/50'}`}>Hunter's List</button>
+                            <button onClick={() => setViewMode('map')} className={`px-6 py-2 rounded-xl font-bold transition ${viewMode === 'map' ? 'bg-white text-amber-700 shadow-sm' : 'text-amber-800/50'}`}>World Map</button>
                         </div>
 
                         {viewMode === 'grid' ? (
                             <div className="grid md:grid-cols-3 gap-6 animate-in fade-in duration-500">
                                 {croissants.map(c => (
-                                    <div key={c.id} className="croissant-card bg-white rounded-3xl shadow-sm border border-amber-100 overflow-hidden hover:shadow-xl transition-all">
+                                    <div key={c.id} className="croissant-card bg-white rounded-[2rem] shadow-sm border border-amber-100 overflow-hidden hover:shadow-2xl transition-all">
                                         {c.photo ? (
-                                            <img src={c.photo} className="w-full h-48 object-cover" />
+                                            <img src={c.photo} className="w-full h-56 object-cover" />
                                         ) : (
-                                            <div className="w-full h-48 bg-amber-50 flex items-center justify-center text-amber-200"><i data-lucide="image" className="w-12 h-12"></i></div>
+                                            <div className="w-full h-56 bg-amber-50 flex items-center justify-center text-amber-200"><i data-lucide="image" className="w-12 h-12"></i></div>
                                         )}
-                                        <div className="p-6">
+                                        <div className="p-8">
                                             <h3 className="text-xl font-black text-amber-900 mb-1">{c.shopName}</h3>
-                                            <div className="text-amber-600 text-xs font-bold flex items-center gap-1 mb-3"><i data-lucide="map-pin" className="w-3 h-3"></i> {c.location}</div>
-                                            <div className="flex gap-1 mb-3">
+                                            <div className="text-amber-600 text-xs font-bold flex items-center gap-1 mb-4 uppercase tracking-widest"><i data-lucide="map-pin" className="w-3 h-3"></i> {c.location}</div>
+                                            <div className="flex gap-1 mb-4">
                                                 {[...Array(5)].map((_, i) => <i key={i} data-lucide="star" className={`w-4 h-4 ${i < c.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`}></i>)}
                                             </div>
-                                            <p className="text-slate-600 text-sm italic">"{c.comment}"</p>
+                                            <p className="text-slate-600 leading-relaxed italic border-l-4 border-amber-100 pl-4">"{c.comment}"</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-sky-100 rounded-[2rem] p-6 border-8 border-white shadow-2xl aspect-[2/1] relative overflow-hidden">
+                            <div className="bg-sky-100 rounded-[2.5rem] p-6 border-8 border-white shadow-2xl aspect-[2/1] relative overflow-hidden">
                                 <svg viewBox="0 0 1000 500" className="w-full h-full">
-                                    {WORLD_PATHS.map((p, i) => <path key={i} d={p.d} fill="#e2f5d3" stroke="#94d6a1" />)}
+                                    {WORLD_PATHS.map((p, i) => <path key={i} d={p.d} fill="#e2f5d3" stroke="#94d6a1" strokeWidth="1.5" />)}
                                     {croissants.map(c => {
                                         const {x, y} = getCoords(c.lat, c.lng);
                                         return <circle key={c.id} cx={x} cy={y} r="6" fill="#d97706" stroke="white" strokeWidth="2" />;
@@ -108,25 +130,30 @@
                     </div>
 
                     {showForm && (
-                        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                            <div className="bg-white rounded-[2.5rem] max-w-3xl w-full flex flex-col md:flex-row overflow-hidden shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300">
-                                <div className="md:w-1/2 bg-sky-50 p-6 border-r border-slate-100 flex flex-col justify-center">
-                                    <h3 className="text-xs font-black text-sky-800 mb-2 flex items-center gap-2 italic"><i data-lucide="navigation" className="w-3 h-3"></i> 地図をタップして場所を選択</h3>
-                                    <svg viewBox="0 0 1000 500" className="w-full bg-sky-100 rounded-xl cursor-crosshair border-2 border-sky-200 shadow-inner" onClick={handleMapClick}>
-                                        {WORLD_PATHS.map((p, i) => <path key={i} d={p.d} fill="white" stroke="#cbd5e1" />)}
-                                        <circle cx={getCoords(formData.lat, formData.lng).x} cy={getCoords(formData.lat, formData.lng).y} r="12" fill="#f59e0b" stroke="white" strokeWidth="3" />
-                                    </svg>
+                        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+                            <div className="bg-white rounded-[2.5rem] max-w-3xl w-full flex flex-col md:flex-row overflow-hidden shadow-2xl border border-white/20 my-auto">
+                                <div className="md:w-1/2 bg-sky-50 p-8 border-r border-slate-100 flex flex-col gap-6">
+                                    <div>
+                                        <h3 className="text-xs font-black text-sky-800 mb-2 flex items-center gap-2 italic uppercase tracking-wider"><i data-lucide="navigation" className="w-3 h-3"></i> 1. Hunt Location</h3>
+                                        <div className="bg-sky-100 rounded-2xl p-2 border-2 border-sky-200 shadow-inner">
+                                            <svg viewBox="0 0 1000 500" className="w-full cursor-crosshair" onClick={handleMapClick}>
+                                                {WORLD_PATHS.map((p, i) => <path key={i} d={p.d} fill="white" stroke="#cbd5e1" />)}
+                                                <circle cx={getCoords(formData.lat, formData.lng).x} cy={getCoords(formData.lat, formData.lng).y} r="12" fill="#f59e0b" stroke="white" strokeWidth="3" />
+                                            </svg>
+                                        </div>
+                                    </div>
                                     
-                                    <div className="mt-6 text-center">
-                                        <label className="cursor-pointer group">
-                                            <div className="w-full h-32 bg-white border-2 border-dashed border-amber-200 rounded-2xl flex flex-col items-center justify-center group-hover:bg-amber-50 transition">
+                                    <div>
+                                        <h3 className="text-xs font-black text-amber-800 mb-2 flex items-center gap-2 italic uppercase tracking-wider"><i data-lucide="camera" className="w-3 h-3"></i> 2. Evidence (Photo)</h3>
+                                        <label className="cursor-pointer block">
+                                            <div className="w-full h-40 bg-white border-2 border-dashed border-amber-200 rounded-3xl flex flex-col items-center justify-center hover:bg-amber-50 transition overflow-hidden">
                                                 {formData.photo ? (
-                                                    <img src={formData.photo} className="w-full h-full object-cover rounded-2xl" />
+                                                    <img src={formData.photo} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <>
-                                                        <i data-lucide="camera" className="text-amber-300 mb-2"></i>
-                                                        <span className="text-xs font-bold text-amber-400">写真を載せる</span>
-                                                    </>
+                                                    <div className="text-center">
+                                                        <i data-lucide="plus-circle" className="text-amber-300 mx-auto mb-2 w-8 h-8"></i>
+                                                        <span className="text-[10px] font-bold text-amber-400 block">Take a photo</span>
+                                                    </div>
                                                 )}
                                             </div>
                                             <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
@@ -135,16 +162,21 @@
                                 </div>
                                 
                                 <div className="md:w-1/2 p-10 space-y-6">
-                                    <div className="flex justify-between items-center"><h2 className="text-2xl font-black text-amber-900 italic">NEW POST</h2><button onClick={()=>setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition"><i data-lucide="x"></i></button></div>
+                                    <div className="flex justify-between items-center"><h2 className="text-2xl font-black text-amber-900 tracking-tighter italic uppercase">New Hunt</h2><button onClick={()=>setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition"><i data-lucide="x"></i></button></div>
                                     <div className="space-y-4">
-                                        <input placeholder="店名" className="w-full border-b-2 border-amber-100 p-2 outline-none font-bold text-xl" onChange={e => setFormData({...formData, shopName: e.target.value})} />
-                                        <input placeholder="エリア (例: Tokyo)" className="w-full border-b border-slate-200 p-2 text-sm outline-none" onChange={e => setFormData({...formData, location: e.target.value})} />
-                                        <div className="flex gap-2">
-                                            {[1,2,3,4,5].map(s => <button key={s} onClick={()=>setFormData({...formData, rating: s})}><i data-lucide="star" className={`w-6 h-6 ${s <= formData.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}></i></button>)}
+                                        <input placeholder="Shop Name" className="w-full border-b-2 border-amber-100 p-2 outline-none font-bold text-xl focus:border-amber-500" onChange={e => setFormData({...formData, shopName: e.target.value})} />
+                                        <input placeholder="Area Name" className="w-full border-b border-slate-200 p-2 text-sm outline-none focus:border-amber-500" onChange={e => setFormData({...formData, location: e.target.value})} />
+                                        <div className="flex gap-2 py-2">
+                                            {[1,2,3,4,5].map(s => <button key={s} onClick={()=>setFormData({...formData, rating: s})} className="transform transition hover:scale-125"><i data-lucide="star" className={`w-6 h-6 ${s <= formData.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}></i></button>)}
                                         </div>
-                                        <textarea placeholder="感想..." className="w-full bg-slate-50 rounded-2xl p-4 h-24 outline-none resize-none" onChange={e => setFormData({...formData, comment: e.target.value})}></textarea>
+                                        <textarea placeholder="How was it?" className="w-full bg-slate-50 rounded-2xl p-4 h-24 outline-none focus:ring-4 ring-amber-100 resize-none text-sm" onChange={e => setFormData({...formData, comment: e.target.value})}></textarea>
                                     </div>
-                                    <button onClick={() => { if(!formData.shopName) return alert('店名を入れてね！'); setCroissants([...croissants, {...formData, id: Date.now().toString()}]); setShowForm(false); setFormData({...formData, photo: null}); }} className="w-full bg-amber-600 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-amber-700 transition">保存 🥐</button>
+                                    <button onClick={() => { 
+                                        if(!formData.shopName) return alert('Enter the shop name!'); 
+                                        setCroissants([...croissants, {...formData, id: Date.now().toString()}]); 
+                                        setShowForm(false); 
+                                        setFormData({...formData, photo: null}); 
+                                    }} className="w-full bg-amber-700 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-amber-800 transition transform hover:-translate-y-1">Record Hunt 🥐</button>
                                 </div>
                             </div>
                         </div>
