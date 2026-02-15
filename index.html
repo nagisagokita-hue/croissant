@@ -1,139 +1,112 @@
-{\rtf1\ansi\ansicpg932\cocoartf2822
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>世界のクロワッサンマップ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap'); body { font-family: 'Noto Sans JP', sans-serif; }</style>
+</head>
+<body class="bg-orange-50">
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { MapPin, Star, Plus, X, Grid, Map: MapIcon, Navigation } = lucide;
 
-\f0\fs24 \cf0 <!DOCTYPE html>\
-<html lang="ja">\
-<head>\
-    <meta charset="UTF-8">\
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
-    <title>\uc0\u19990 \u30028 \u12398 \u12463 \u12525 \u12527 \u12483 \u12469 \u12531 \u12510 \u12483 \u12503 </title>\
-    <script src="https://cdn.tailwindcss.com"></script>\
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>\
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>\
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>\
-    <script src="https://unpkg.com/lucide@latest"></script>\
-    <style>\
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');\
-        body \{ font-family: 'Noto Sans JP', sans-serif; \}\
-    </style>\
-</head>\
-<body class="bg-orange-50">\
-    <div id="root"></div>\
-\
-    <script type="text/babel">\
-        const \{ useState, useEffect \} = React;\
-        const \{ MapPin, Star, Plus, X, Grid, Map: MapIcon, Image: ImageIcon, Navigation \} = lucide;\
-\
-        // \uc0\u22320 \u22259 \u12487 \u12540 \u12479 \
-        const WORLD_PATHS = [\
-            \{ name: 'North America', d: "M 150 100 L 180 80 L 250 85 L 320 120 L 330 200 L 280 230 L 200 210 L 140 150 Z" \},\
-            \{ name: 'South America', d: "M 280 260 L 330 280 L 340 330 L 300 420 L 260 380 L 250 300 Z" \},\
-            \{ name: 'Europe', d: "M 480 120 L 530 110 L 550 140 L 530 180 L 480 170 L 470 140 Z" \},\
-            \{ name: 'Africa', d: "M 470 190 L 530 180 L 560 230 L 540 330 L 480 340 L 450 250 Z" \},\
-            \{ name: 'Asia', d: "M 550 120 L 700 80 L 850 130 L 880 250 L 750 300 L 600 280 L 540 200 Z" \},\
-            \{ name: 'Australia', d: "M 780 330 L 850 320 L 870 380 L 800 410 L 760 370 Z" \},\
-            \{ name: 'Japan', d: "M 835 155 L 845 155 L 850 170 L 840 180 Z" \}\
-        ];\
-\
-        const CroissantMap = () => \{\
-            const [croissants, setCroissants] = useState([\
-                \{ id: '1', shopName: 'Sample Bakery', location: 'Paris', rating: 5, comment: '\uc0\u32654 \u21619 \u65281 ', lat: 48.8566, lng: 2.3522, date: new Date().toISOString() \}\
-            ]);\
-            const [viewMode, setViewMode] = useState('grid');\
-            const [showForm, setShowForm] = useState(false);\
-            const [formData, setFormData] = useState(\{ shopName: '', location: '', rating: 5, comment: '', lat: 35.6762, lng: 139.6503 \});\
-\
-            const getCoords = (lat, lng) => (\{\
-                x: ((lng + 180) / 360) * 1000,\
-                y: ((90 - lat) / 180) * 500\
-            \});\
-\
-            const handleMapClick = (e) => \{\
-                const rect = e.currentTarget.getBoundingClientRect();\
-                const x = ((e.clientX - rect.left) / rect.width) * 1000;\
-                const y = ((e.clientY - rect.top) / rect.height) * 500;\
-                setFormData(\{ ...formData, lng: (x / 1000) * 360 - 180, lat: 90 - (y / 500) * 180 \});\
-            \};\
-\
-            const StarRating = (\{ rating, onChange, readOnly \}) => (\
-                <div className="flex gap-1">\
-                    \{[1,2,3,4,5].map(s => (\
-                        <i key=\{s\} data-lucide="star" \
-                           className=\{`w-5 h-5 $\{s <= rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'\} $\{!readOnly && 'cursor-pointer'\}`\}\
-                           onClick=\{() => !readOnly && onChange(s)\}\
-                        ></i>\
-                    ))\}\
-                </div>\
-            );\
-\
-            useEffect(() => \{ lucide.createIcons(); \}, [viewMode, showForm, formData.rating]);\
-\
-            return (\
-                <div>\
-                    <header class="bg-amber-600 text-white p-6 shadow-lg flex justify-between items-center">\
-                        <h1 class="text-2xl font-black italic">\uc0\u55358 \u56656  CROISSANT MAP</h1>\
-                        <button onClick=\{() => setShowForm(true)\} class="bg-white text-amber-600 px-4 py-2 rounded-full font-bold shadow-md hover:scale-105 transition">\uc0\u25237 \u31295 \u12377 \u12427 </button>\
-                    </header>\
-\
-                    <div class="max-w-6xl mx-auto p-6">\
-                        <div class="flex gap-2 mb-6 bg-amber-100 w-fit p-1 rounded-xl">\
-                            <button onClick=\{() => setViewMode('grid')\} class=\{`px-4 py-2 rounded-lg font-bold $\{viewMode === 'grid' ? 'bg-white text-amber-600 shadow' : 'text-amber-800/50'\}`\}>\uc0\u19968 \u35239 </button>\
-                            <button onClick=\{() => setViewMode('map')\} class=\{`px-4 py-2 rounded-lg font-bold $\{viewMode === 'map' ? 'bg-white text-amber-600 shadow' : 'text-amber-800/50'\}`\}>\uc0\u22320 \u22259 </button>\
-                        </div>\
-\
-                        \{viewMode === 'grid' ? (\
-                            <div class="grid md:grid-cols-3 gap-6">\
-                                \{croissants.map(c => (\
-                                    <div key=\{c.id\} class="bg-white p-5 rounded-2xl shadow-sm border border-amber-100">\
-                                        <h3 class="text-xl font-bold text-amber-900">\{c.shopName\}</h3>\
-                                        <p class="text-amber-600 text-sm flex items-center gap-1 mb-2"><MapPin size=\{14\}/>\{c.location\}</p>\
-                                        <p class="text-slate-600 italic">"\{c.comment\}"</p>\
-                                    </div>\
-                                ))\}\
-                            </div>\
-                        ) : (\
-                            <div class="bg-sky-100 rounded-3xl p-4 border-4 border-white shadow-xl aspect-[2/1] relative">\
-                                <svg viewBox="0 0 1000 500" class="w-full h-full">\
-                                    \{WORLD_PATHS.map((p, i) => <path key=\{i\} d=\{p.d\} fill="#e2f5d3" stroke="#94d6a1" />)\}\
-                                    \{croissants.map(c => \{\
-                                        const \{x, y\} = getCoords(c.lat, c.lng);\
-                                        return <circle key=\{c.id\} cx=\{x\} cy=\{y\} r="6" fill="#d97706" stroke="white" strokeWidth="2" />;\
-                                    \})\}\
-                                </svg>\
-                            </div>\
-                        )\}\
-                    </div>\
-\
-                    \{showForm && (\
-                        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">\
-                            <div class="bg-white rounded-3xl max-w-2xl w-full flex flex-col md:flex-row overflow-hidden shadow-2xl">\
-                                <div class="md:w-1/2 bg-sky-50 p-6 border-r">\
-                                    <p class="text-sm font-bold text-sky-800 mb-2 italic">\uc0\u22320 \u22259 \u12434 \u12479 \u12483 \u12503 \u12375 \u12390 \u22580 \u25152 \u12434 \u36984 \u25246  \u8595 </p>\
-                                    <svg viewBox="0 0 1000 500" class="w-full bg-sky-100 rounded-xl cursor-crosshair border-2 border-sky-200" onClick=\{handleMapClick\}>\
-                                        \{WORLD_PATHS.map((p, i) => <path key=\{i\} d=\{p.d\} fill="white" stroke="#cbd5e1" />)\}\
-                                        <circle cx=\{getCoords(formData.lat, formData.lng).x\} cy=\{getCoords(formData.lat, formData.lng).y\} r="10" fill="#f59e0b" stroke="white" strokeWidth="2" />\
-                                    </svg>\
-                                </div>\
-                                <div class="md:w-1/2 p-6 space-y-4">\
-                                    <div class="flex justify-between items-center"><h2 class="text-xl font-black">NEW REVIEW</h2><button onClick=\{()=>setShowForm(false)\}><X/></button></div>\
-                                    <input placeholder="\uc0\u24215 \u21517 " class="w-full border-b-2 p-2 outline-none" onChange=\{e => setFormData(\{...formData, shopName: e.target.value\})\} />\
-                                    <input placeholder="\uc0\u12456 \u12522 \u12450 \u21517 " class="w-full border-b p-2 text-sm outline-none" onChange=\{e => setFormData(\{...formData, location: e.target.value\})\} />\
-                                    <textarea placeholder="\uc0\u24863 \u24819 ..." class="w-full bg-gray-50 rounded-xl p-3 h-24 outline-none" onChange=\{e => setFormData(\{...formData, comment: e.target.value\})\}></textarea>\
-                                    <button onClick=\{() => \{ setCroissants([...croissants, \{...formData, id: Date.now()\}]); setShowForm(false); \}\} class="w-full bg-amber-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-amber-700">\uc0\u20445 \u23384 \u12377 \u12427 </button>\
-                                </div>\
-                            </div>\
-                        </div>\
-                    )\}\
-                </div>\
-            );\
-        \};\
-\
-        const root = ReactDOM.createRoot(document.getElementById('root'));\
-        root.render(<CroissantMap />);\
-    </script>\
-</body>\
-</html>}
+        const WORLD_PATHS = [
+            { name: 'North America', d: "M 150 100 L 180 80 L 250 85 L 320 120 L 330 200 L 280 230 L 200 210 L 140 150 Z" },
+            { name: 'South America', d: "M 280 260 L 330 280 L 340 330 L 300 420 L 260 380 L 250 300 Z" },
+            { name: 'Europe', d: "M 480 120 L 530 110 L 550 140 L 530 180 L 480 170 L 470 140 Z" },
+            { name: 'Africa', d: "M 470 190 L 530 180 L 560 230 L 540 330 L 480 340 L 450 250 Z" },
+            { name: 'Asia', d: "M 550 120 L 700 80 L 850 130 L 880 250 L 750 300 L 600 280 L 540 200 Z" },
+            { name: 'Australia', d: "M 780 330 L 850 320 L 870 380 L 800 410 L 760 370 Z" },
+            { name: 'Japan', d: "M 835 155 L 845 155 L 850 170 L 840 180 Z" }
+        ];
+
+        const CroissantMap = () => {
+            const [croissants, setCroissants] = useState([{ id: '1', shopName: 'Sample Bakery', location: 'Paris', rating: 5, comment: '最高！', lat: 48.8566, lng: 2.3522 }]);
+            const [viewMode, setViewMode] = useState('grid');
+            const [showForm, setShowForm] = useState(false);
+            const [formData, setFormData] = useState({ shopName: '', location: '', rating: 5, comment: '', lat: 35.6762, lng: 139.6503 });
+
+            const getCoords = (lat, lng) => ({ x: ((lng + 180) / 360) * 1000, y: ((90 - lat) / 180) * 500 });
+            const handleMapClick = (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 1000;
+                const y = ((e.clientY - rect.top) / rect.height) * 500;
+                setFormData({ ...formData, lng: (x / 1000) * 360 - 180, lat: 90 - (y / 500) * 180 });
+            };
+
+            useEffect(() => { lucide.createIcons(); }, [viewMode, showForm, formData]);
+
+            return (
+                <div class="min-h-screen">
+                    <header class="bg-amber-600 text-white p-6 shadow-lg flex justify-between items-center">
+                        <h1 class="text-2xl font-black">🥐 CROISSANT MAP</h1>
+                        <button onClick={() => setShowForm(true)} class="bg-white text-amber-600 px-6 py-2 rounded-full font-bold shadow-md hover:scale-105 transition">投稿する</button>
+                    </header>
+                    <div class="max-w-6xl mx-auto p-6">
+                        <div class="flex gap-2 mb-6 bg-amber-100 w-fit p-1 rounded-xl shadow-inner">
+                            <button onClick={() => setViewMode('grid')} class={`px-6 py-2 rounded-lg font-bold transition ${viewMode === 'grid' ? 'bg-white text-amber-600 shadow' : 'text-amber-800/50'}`}>一覧</button>
+                            <button onClick={() => setViewMode('map')} class={`px-6 py-2 rounded-lg font-bold transition ${viewMode === 'map' ? 'bg-white text-amber-600 shadow' : 'text-amber-800/50'}`}>地図</button>
+                        </div>
+                        {viewMode === 'grid' ? (
+                            <div class="grid md:grid-cols-3 gap-6">
+                                {croissants.map(c => (
+                                    <div key={c.id} class="bg-white p-6 rounded-2xl shadow-sm border border-amber-100 hover:shadow-md transition">
+                                        <h3 class="text-xl font-bold text-amber-900">{c.shopName}</h3>
+                                        <p class="text-amber-600 text-sm flex items-center gap-1 mb-3"><MapPin size={14}/>{c.location}</p>
+                                        <div class="flex mb-3">
+                                            {[...Array(5)].map((_, i) => <Star key={i} size={16} class={i < c.rating ? "fill-amber-400 text-amber-400" : "text-gray-200"} />)}
+                                        </div>
+                                        <p class="text-slate-600 italic">"{c.comment}"</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div class="bg-sky-100 rounded-3xl p-4 border-4 border-white shadow-2xl aspect-[2/1] relative overflow-hidden">
+                                <svg viewBox="0 0 1000 500" class="w-full h-full">
+                                    {WORLD_PATHS.map((p, i) => <path key={i} d={p.d} fill="#e2f5d3" stroke="#94d6a1" strokeWidth="1" />)}
+                                    {croissants.map(c => {
+                                        const {x, y} = getCoords(c.lat, c.lng);
+                                        return <g key={c.id}><circle cx={x} cy={y} r="15" fill="white" fillOpacity="0.3" class="animate-ping" /><circle cx={x} cy={y} r="6" fill="#d97706" stroke="white" strokeWidth="2" /></g>;
+                                    })}
+                                </svg>
+                            </div>
+                        )}
+                    </div>
+                    {showForm && (
+                        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                            <div class="bg-white rounded-3xl max-w-2xl w-full flex flex-col md:flex-row overflow-hidden shadow-2xl">
+                                <div class="md:w-1/2 bg-sky-50 p-6 border-r border-slate-100">
+                                    <label class="block text-sm font-bold text-sky-800 mb-2 italic">地図をタップして場所を選択 ↓</label>
+                                    <svg viewBox="0 0 1000 500" class="w-full bg-sky-100 rounded-xl cursor-crosshair border-2 border-sky-200" onClick={handleMapClick}>
+                                        {WORLD_PATHS.map((p, i) => <path key={i} d={p.d} fill="white" stroke="#cbd5e1" />)}
+                                        <circle cx={getCoords(formData.lat, formData.lng).x} cy={getCoords(formData.lat, formData.lng).y} r="10" fill="#f59e0b" stroke="white" strokeWidth="2" />
+                                    </svg>
+                                </div>
+                                <div class="md:w-1/2 p-8 space-y-4">
+                                    <div class="flex justify-between items-center"><h2 class="text-2xl font-black text-amber-900">NEW REVIEW</h2><button onClick={()=>setShowForm(false)} class="p-2 bg-slate-100 rounded-full"><X/></button></div>
+                                    <input placeholder="店名" class="w-full border-b-2 border-amber-100 p-2 outline-none font-bold text-lg focus:border-amber-500 transition" onChange={e => setFormData({...formData, shopName: e.target.value})} />
+                                    <input placeholder="エリア名（例：Paris）" class="w-full border-b p-2 text-sm outline-none focus:border-amber-500 transition" onChange={e => setFormData({...formData, location: e.target.value})} />
+                                    <div class="flex items-center gap-2 py-2">
+                                        {[1,2,3,4,5].map(s => <Star key={s} size={24} onClick={()=>setFormData({...formData, rating: s})} class={`cursor-pointer transition-all ${s <= formData.rating ? 'fill-amber-400 text-amber-400 scale-110' : 'text-gray-200 hover:text-amber-200'}`} />)}
+                                    </div>
+                                    <textarea placeholder="味の感想は？" class="w-full bg-slate-50 rounded-2xl p-4 h-24 outline-none focus:ring-2 ring-amber-200 transition" onChange={e => setFormData({...formData, comment: e.target.value})}></textarea>
+                                    <button onClick={() => { setCroissants([...croissants, {...formData, id: Date.now()}]); setShowForm(false); }} class="w-full bg-amber-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-amber-700 transition transform hover:scale-[1.02]">MAPに保存する 🥐</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CroissantMap />);
+    </script>
+</body>
+</html>
