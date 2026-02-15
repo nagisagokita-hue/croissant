@@ -11,15 +11,15 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans JP', sans-serif; margin: 0; padding: 0; }
-        .map-container svg { filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); }
+        body { font-family: 'Noto Sans JP', sans-serif; margin: 0; }
+        .croissant-card img { transition: transform 0.3s ease; }
+        .croissant-card:hover img { transform: scale(1.05); }
     </style>
 </head>
 <body class="bg-orange-50">
     <div id="root"></div>
 
     <script type="text/babel">
-        // ReactとLucideを安全に取得
         const { useState, useEffect } = React;
 
         const WORLD_PATHS = [
@@ -34,159 +34,117 @@
 
         const CroissantMap = () => {
             const [croissants, setCroissants] = useState([
-                { id: '1', shopName: 'Sample Bakery', location: 'Paris', rating: 5, comment: 'サクサクで最高！', lat: 48.8566, lng: 2.3522 }
+                { id: '1', shopName: 'Sample Bakery', location: 'Paris', rating: 5, comment: '外はサクサク！', lat: 48.8566, lng: 2.3522, photo: null }
             ]);
             const [viewMode, setViewMode] = useState('grid');
             const [showForm, setShowForm] = useState(false);
-            const [formData, setFormData] = useState({ shopName: '', location: '', rating: 5, comment: '', lat: 35.6762, lng: 139.6503 });
+            const [formData, setFormData] = useState({ shopName: '', location: '', rating: 5, comment: '', lat: 35.6762, lng: 139.6503, photo: null });
 
-            // 座標変換
-            const getCoords = (lat, lng) => ({
-                x: ((lng + 180) / 360) * 1000,
-                y: ((90 - lat) / 180) * 500
-            });
+            const getCoords = (lat, lng) => ({ x: ((lng + 180) / 360) * 1000, y: ((90 - lat) / 180) * 500 });
 
-            // 地図クリックで場所選択
             const handleMapClick = (e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = ((e.clientX - rect.left) / rect.width) * 1000;
                 const y = ((e.clientY - rect.top) / rect.height) * 500;
-                setFormData({ 
-                    ...formData, 
-                    lng: (x / 1000) * 360 - 180, 
-                    lat: 90 - (y / 500) * 180 
-                });
+                setFormData({ ...formData, lng: (x / 1000) * 360 - 180, lat: 90 - (y / 500) * 180 });
             };
 
-            // アイコンを再描画する命令
-            useEffect(() => {
-                if (window.lucide) {
-                    window.lucide.createIcons();
+            // 写真を読み込む関数
+            const handlePhotoChange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setFormData({ ...formData, photo: reader.result });
+                    reader.readAsDataURL(file);
                 }
-            }, [viewMode, showForm, formData.rating]);
+            };
+
+            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [viewMode, showForm, formData]);
 
             return (
                 <div className="min-h-screen pb-10">
                     <header className="bg-amber-600 text-white p-6 shadow-xl flex justify-between items-center">
-                        <h1 className="text-2xl font-black tracking-tighter italic">🥐 CROISSANT WORLD</h1>
-                        <button 
-                            onClick={() => setShowForm(true)} 
-                            className="bg-white text-amber-600 px-6 py-2 rounded-full font-bold shadow-md hover:scale-105 transition active:scale-95"
-                        >
-                            投稿する
-                        </button>
+                        <h1 className="text-2xl font-black italic">🥐 Croissant Map for Hunters </h1>
+                        <button onClick={() => setShowForm(true)} className="bg-white text-amber-600 px-6 py-2 rounded-full font-bold shadow-md hover:scale-105 transition">投稿する</button>
                     </header>
 
                     <div className="max-w-6xl mx-auto p-6">
                         <div className="flex gap-2 mb-8 bg-amber-100 w-fit p-1 rounded-2xl shadow-inner border border-amber-200">
-                            <button 
-                                onClick={() => setViewMode('grid')} 
-                                className={`px-6 py-2 rounded-xl font-bold transition ${viewMode === 'grid' ? 'bg-white text-amber-600 shadow-sm' : 'text-amber-800/50 hover:text-amber-700'}`}
-                            >
-                                一覧表示
-                            </button>
-                            <button 
-                                onClick={() => setViewMode('map')} 
-                                className={`px-6 py-2 rounded-xl font-bold transition ${viewMode === 'map' ? 'bg-white text-amber-600 shadow-sm' : 'text-amber-800/50 hover:text-amber-700'}`}
-                            >
-                                マップ
-                            </button>
+                            <button onClick={() => setViewMode('grid')} className={`px-6 py-2 rounded-xl font-bold transition ${viewMode === 'grid' ? 'bg-white text-amber-600 shadow-sm' : 'text-amber-800/50'}`}>一覧</button>
+                            <button onClick={() => setViewMode('map')} className={`px-6 py-2 rounded-xl font-bold transition ${viewMode === 'map' ? 'bg-white text-amber-600 shadow-sm' : 'text-amber-800/50'}`}>マップ</button>
                         </div>
 
                         {viewMode === 'grid' ? (
                             <div className="grid md:grid-cols-3 gap-6 animate-in fade-in duration-500">
                                 {croissants.map(c => (
-                                    <div key={c.id} className="bg-white p-6 rounded-3xl shadow-sm border border-amber-100 hover:shadow-xl transition-all">
-                                        <h3 className="text-xl font-black text-amber-900 mb-1">{c.shopName}</h3>
-                                        <div className="text-amber-600 text-xs font-bold flex items-center gap-1 mb-4 uppercase tracking-widest">
-                                            <i data-lucide="map-pin" className="w-3 h-3"></i> {c.location}
+                                    <div key={c.id} className="croissant-card bg-white rounded-3xl shadow-sm border border-amber-100 overflow-hidden hover:shadow-xl transition-all">
+                                        {c.photo ? (
+                                            <img src={c.photo} className="w-full h-48 object-cover" />
+                                        ) : (
+                                            <div className="w-full h-48 bg-amber-50 flex items-center justify-center text-amber-200"><i data-lucide="image" className="w-12 h-12"></i></div>
+                                        )}
+                                        <div className="p-6">
+                                            <h3 className="text-xl font-black text-amber-900 mb-1">{c.shopName}</h3>
+                                            <div className="text-amber-600 text-xs font-bold flex items-center gap-1 mb-3"><i data-lucide="map-pin" className="w-3 h-3"></i> {c.location}</div>
+                                            <div className="flex gap-1 mb-3">
+                                                {[...Array(5)].map((_, i) => <i key={i} data-lucide="star" className={`w-4 h-4 ${i < c.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`}></i>)}
+                                            </div>
+                                            <p className="text-slate-600 text-sm italic">"{c.comment}"</p>
                                         </div>
-                                        <div className="flex gap-1 mb-4">
-                                            {[...Array(5)].map((_, i) => (
-                                                <i key={i} data-lucide="star" className={`w-4 h-4 ${i < c.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`}></i>
-                                            ))}
-                                        </div>
-                                        <p className="text-slate-600 leading-relaxed italic border-l-4 border-amber-100 pl-4">"{c.comment}"</p>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-sky-100 rounded-[2rem] p-6 border-8 border-white shadow-2xl aspect-[2/1] relative overflow-hidden map-container">
-                                <svg viewBox="0 0 1000 500" className="w-full h-full drop-shadow-lg">
-                                    {WORLD_PATHS.map((p, i) => (
-                                        <path key={i} d={p.d} fill="#e2f5d3" stroke="#94d6a1" strokeWidth="1.5" />
-                                    ))}
+                            <div className="bg-sky-100 rounded-[2rem] p-6 border-8 border-white shadow-2xl aspect-[2/1] relative overflow-hidden">
+                                <svg viewBox="0 0 1000 500" className="w-full h-full">
+                                    {WORLD_PATHS.map((p, i) => <path key={i} d={p.d} fill="#e2f5d3" stroke="#94d6a1" />)}
                                     {croissants.map(c => {
                                         const {x, y} = getCoords(c.lat, c.lng);
-                                        return (
-                                            <g key={c.id}>
-                                                <circle cx={x} cy={y} r="12" fill="white" fillOpacity="0.4" className="animate-ping" />
-                                                <circle cx={x} cy={y} r="6" fill="#d97706" stroke="white" strokeWidth="2" />
-                                            </g>
-                                        );
+                                        return <circle key={c.id} cx={x} cy={y} r="6" fill="#d97706" stroke="white" strokeWidth="2" />;
                                     })}
                                 </svg>
-                                <div className="absolute bottom-6 right-6 bg-white/80 backdrop-blur px-4 py-2 rounded-full text-[10px] font-bold text-sky-800 border border-sky-200 shadow-sm">
-                                    世界各地のクロワッサンがここに集結
-                                </div>
                             </div>
                         )}
                     </div>
 
                     {showForm && (
                         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                            <div className="bg-white rounded-[2.5rem] max-w-2xl w-full flex flex-col md:flex-row overflow-hidden shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300">
-                                <div className="md:w-1/2 bg-sky-50 p-8 border-r border-slate-100 flex flex-col justify-center">
-                                    <h3 className="text-sm font-black text-sky-800 mb-4 flex items-center gap-2">
-                                        <i data-lucide="navigation" className="w-4 h-4"></i> 地図をタップして場所を選択
-                                    </h3>
-                                    <div className="bg-sky-100 rounded-2xl p-2 shadow-inner border-2 border-sky-200">
-                                        <svg viewBox="0 0 1000 500" className="w-full cursor-crosshair" onClick={handleMapClick}>
-                                            {WORLD_PATHS.map((p, i) => <path key={i} d={p.d} fill="white" stroke="#cbd5e1" />)}
-                                            <circle cx={getCoords(formData.lat, formData.lng).x} cy={getCoords(formData.lat, formData.lng).y} r="12" fill="#f59e0b" stroke="white" strokeWidth="3" />
-                                        </svg>
+                            <div className="bg-white rounded-[2.5rem] max-w-3xl w-full flex flex-col md:flex-row overflow-hidden shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300">
+                                <div className="md:w-1/2 bg-sky-50 p-6 border-r border-slate-100 flex flex-col justify-center">
+                                    <h3 className="text-xs font-black text-sky-800 mb-2 flex items-center gap-2 italic"><i data-lucide="navigation" className="w-3 h-3"></i> 地図をタップして場所を選択</h3>
+                                    <svg viewBox="0 0 1000 500" className="w-full bg-sky-100 rounded-xl cursor-crosshair border-2 border-sky-200 shadow-inner" onClick={handleMapClick}>
+                                        {WORLD_PATHS.map((p, i) => <path key={i} d={p.d} fill="white" stroke="#cbd5e1" />)}
+                                        <circle cx={getCoords(formData.lat, formData.lng).x} cy={getCoords(formData.lat, formData.lng).y} r="12" fill="#f59e0b" stroke="white" strokeWidth="3" />
+                                    </svg>
+                                    
+                                    <div className="mt-6 text-center">
+                                        <label className="cursor-pointer group">
+                                            <div className="w-full h-32 bg-white border-2 border-dashed border-amber-200 rounded-2xl flex flex-col items-center justify-center group-hover:bg-amber-50 transition">
+                                                {formData.photo ? (
+                                                    <img src={formData.photo} className="w-full h-full object-cover rounded-2xl" />
+                                                ) : (
+                                                    <>
+                                                        <i data-lucide="camera" className="text-amber-300 mb-2"></i>
+                                                        <span className="text-xs font-bold text-amber-400">写真を載せる</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                                        </label>
                                     </div>
-                                    <p className="text-[10px] text-slate-400 mt-4 text-center">ピンの場所が投稿位置になります</p>
                                 </div>
+                                
                                 <div className="md:w-1/2 p-10 space-y-6">
-                                    <div className="flex justify-between items-center">
-                                        <h2 className="text-2xl font-black text-amber-900 italic tracking-tighter">NEW POST</h2>
-                                        <button onClick={()=>setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition"><i data-lucide="x"></i></button>
-                                    </div>
+                                    <div className="flex justify-between items-center"><h2 className="text-2xl font-black text-amber-900 italic">NEW POST</h2><button onClick={()=>setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-full transition"><i data-lucide="x"></i></button></div>
                                     <div className="space-y-4">
-                                        <input 
-                                            placeholder="お店の名前" 
-                                            className="w-full border-b-2 border-amber-100 p-2 outline-none font-bold text-xl focus:border-amber-500 transition placeholder:text-slate-300" 
-                                            onChange={e => setFormData({...formData, shopName: e.target.value})} 
-                                        />
-                                        <input 
-                                            placeholder="エリア名 (例: Paris, France)" 
-                                            className="w-full border-b border-slate-200 p-2 text-sm outline-none focus:border-amber-500 transition" 
-                                            onChange={e => setFormData({...formData, location: e.target.value})} 
-                                        />
-                                        <div className="flex items-center gap-2 py-2">
-                                            {[1,2,3,4,5].map(s => (
-                                                <button key={s} onClick={()=>setFormData({...formData, rating: s})} className="transition transform hover:scale-125">
-                                                    <i data-lucide="star" className={`w-6 h-6 ${s <= formData.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}></i>
-                                                </button>
-                                            ))}
+                                        <input placeholder="店名" className="w-full border-b-2 border-amber-100 p-2 outline-none font-bold text-xl" onChange={e => setFormData({...formData, shopName: e.target.value})} />
+                                        <input placeholder="エリア (例: Tokyo)" className="w-full border-b border-slate-200 p-2 text-sm outline-none" onChange={e => setFormData({...formData, location: e.target.value})} />
+                                        <div className="flex gap-2">
+                                            {[1,2,3,4,5].map(s => <button key={s} onClick={()=>setFormData({...formData, rating: s})}><i data-lucide="star" className={`w-6 h-6 ${s <= formData.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}></i></button>)}
                                         </div>
-                                        <textarea 
-                                            placeholder="クロワッサンの感想を聞かせて！" 
-                                            className="w-full bg-slate-50 rounded-2xl p-4 h-28 outline-none focus:ring-4 ring-amber-100 transition resize-none text-slate-700" 
-                                            onChange={e => setFormData({...formData, comment: e.target.value})}
-                                        ></textarea>
+                                        <textarea placeholder="感想..." className="w-full bg-slate-50 rounded-2xl p-4 h-24 outline-none resize-none" onChange={e => setFormData({...formData, comment: e.target.value})}></textarea>
                                     </div>
-                                    <button 
-                                        onClick={() => { 
-                                            if(!formData.shopName) return alert('店名を入力してね！');
-                                            setCroissants([...croissants, {...formData, id: Date.now().toString()}]); 
-                                            setShowForm(false); 
-                                        }} 
-                                        className="w-full bg-amber-600 text-white font-black py-5 rounded-2xl shadow-xl hover:bg-amber-700 transition transform hover:-translate-y-1 active:scale-95 shadow-amber-200"
-                                    >
-                                        マップに刻む 🥐
-                                    </button>
+                                    <button onClick={() => { if(!formData.shopName) return alert('店名を入れてね！'); setCroissants([...croissants, {...formData, id: Date.now().toString()}]); setShowForm(false); setFormData({...formData, photo: null}); }} className="w-full bg-amber-600 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-amber-700 transition">保存 🥐</button>
                                 </div>
                             </div>
                         </div>
